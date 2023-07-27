@@ -1,198 +1,124 @@
-import pygame 
-from copy import deepcopy 
-from random import choice, randrange
+# importação das bibliotecas 
+from tkinter import * 
+from tkinter import ttk
 
-W, H = 10, 20 
-TILE = 45 
-GAME_RES = W * TILE, H * TILE 
-RES = 750, 940
-FPS = 60
+# cores
+cor_cinza = "#545659" 
+cor_branca = "#ffffff" 
+cor_verde = "#298730"
+cor_verde_claro = "#5cff68"
+cor_verde_escuro = "#152616"
+cor_verde_cinza_claro = "#b0d4b2"
 
-pygame.init()
-sc = pygame.display.set_mode(RES)
-game_sc = pygame.Surface(GAME_RES)
-clock = pygame.time.Clock()
+# criação da janela e faz configurações 
+janela = Tk()
+janela.title("Calculadora")
+janela.geometry("235x314")
+janela.config(bg= cor_cinza)
 
-grid = [pygame.Rect(x * TILE, y * TILE, TILE, TILE)for x in range(W) for y in range(H)]
 
-figures_pos = [[(-1, 0), (-2, 0), (0, 0), (1, 0)],
-               [(0, -1), (-1, -1), (-1, 0), (0, 0)],
-               [(-1, 0), (-1, 1), (0, 0), (0, -1)],
-               [(0, 0), (-1, 0), (0, 1), (-1, -1)],
-               [(0, 0), (0, -1), (0, 1), (-1, -1)],
-               [(0, 0), (0, -1), (0, 1), (1, -1)],
-               [(0, 0), (0, -1), (0, 1), (-1, 0)]]
+# criação de frames
+frame_tela = Frame(janela, width= 300, height= 56, bg = cor_cinza)
+frame_tela.grid(row=0, column=0)
 
-figures = [[pygame.Rect(x + W // 2, y + 1, 1 ,1)for x, y in fig_pos] for fig_pos in figures_pos]
-figure_rect = pygame.Rect(0, 0, TILE - 2, TILE - 2)
-field = [[0 for i in range(W)] for j in range(H)]
+frame_corpo = Frame(janela, width= 300, height= 340)
+frame_corpo.grid(row=1 , column =0)
 
-anim_count, anim_speed, anim_limit = 0, 60, 2000
 
-bg = pygame.image.load('img/bg.jpg').convert()
-game_bg = pygame.image.load('img/bg2.jpg').convert()
+todos_valores = ''
 
-main_font = pygame.font.Font('font/font.ttf', 65)
-font = pygame.font.Font('font/font.ttf', 45)
-
-title_tetris = main_font.render('TETRIS', True, pygame.Color('darkorange'))
-title_score = font.render('score:', True, pygame.Color('green'))
-title_record = font.render('record:', True, pygame.Color('purple'))
-
-get_color = lambda : (randrange(30, 256), randrange(30, 256), randrange(30,256))
-
-figure, next_figure = deepcopy(choice(figures)), deepcopy(choice(figures))
-color, next_color = get_color(), get_color()
-
-score, lines = 0,0
-scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}
-
-def check_borders():
-    # checa as bordas do eixo x
-    if figure[i].x < 0  or figure[i].x > W -1:
-        return False
-    # checa as bordas do eixo y
-    elif figure[i].y > H - 1 or field[figure[i].y][figure[i].x]:
-        return False
-    return True
-
-# funcao grava o record
-def get_record():
-    try:
-        with open('record') as f:
-            return f.readline()
-    except FileNotFoundError:
-        with open('record', 'w') as f:
-            f.write('0')
-            
-def set_record(record, score):
-    rec = max(int(record), score)
-    with open('record', 'w') as f:
-        f.write(str(rec))
-        
-        
+# criando função para passar valor pra tela
+def entrar_valores(e):
     
-while True: 
-    record = get_record()
-    dx, rotate = 0, False
-    sc.blit(bg, (0, 0))
-    sc.blit(game_sc, (20, 20))
-    game_sc.blit(game_bg, (0, 0))
+    global todos_valores 
     
-    #delay for full lines
-    for i in range(lines):
-        pygame.time.wait(200)
+    todos_valores = todos_valores + str(e)
     
-    # control
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                dx = -1
-            elif event.key == pygame.K_RIGHT:
-                dx = 1
-            elif event.key == pygame.K_DOWN:
-                anim_limit = 100
-            elif event.key == pygame.K_UP:
-                rotate = True
-                    
-    # move x
-    figure_old = deepcopy(figure)
-    for i in range(4):
-        figure[i].x += dx 
-        if not check_borders():
-            figure = deepcopy(figure_old)
-            break
-            
-   # move y
-    anim_count += anim_speed
-    if anim_count > anim_limit:
-        anim_count = 0
-        figure_old = deepcopy(figure)
-        for i in range(4):
-            figure[i].y += 1
-            if not check_borders():
-                for i in range(4):
-                    field[figure_old[i].y][figure_old[i].x] = color
-                figure, color = next_figure, next_color
-                next_figure, next_color = deepcopy(choice(figures)), get_color()
-                anim_limit = 2000
-                break
-        
-    # rotate
-    center = figure[0]
-    figure_old = deepcopy(figure)
-    if rotate:
-        for i in range(4):
-            x = figure[i].y - center.y
-            y = figure[i].x - center.x
-            figure[i]. x = center.x - x 
-            figure[i]. y = center.y + y 
-            if not check_borders():
-                figure = deepcopy(figure_old)
-                break
-    # check lines
-    # checa a linha para tirar as peças caso tenha completado
-    line, lines = H - 1, 0
-    for row in range(H - 1, -1, -1):
-        count = 0
-        for i in range(W):
-            if field[row][i]:
-                count += 1
-            field[line][i] = field[row][i]
-        if count < W:
-            line -= 1
-        else:
-            anim_speed += 3
-            lines += 1
-            
-    # compute score
-    score += scores[lines]
-       
-    # draw grid 
-    [pygame.draw.rect(game_sc,(40, 40, 40), i_rect, 1) for i_rect in grid]    
-    # draw figure
-    for i in range(4):
-        figure_rect.x = figure[i].x * TILE
-        figure_rect.y = figure[i].y * TILE
-        pygame.draw.rect(game_sc, color , figure_rect)
-        
-    # draw field
-    for y, raw in enumerate(field):
-        for x, col in enumerate(raw):
-            if col:
-                figure_rect.x, figure_rect.y = x * TILE, y * TILE 
-                pygame.draw.rect(game_sc, col, figure_rect)
-                
-    # draw next figure 
-    for i in range(4):
-        figure_rect.x = next_figure[i].x * TILE + 380
-        figure_rect.y = next_figure[i].y * TILE + 185
-        pygame.draw.rect(sc, next_color, figure_rect)
-        
-    # draw titles
-    sc.blit(title_tetris, (485, -10))
-    sc.blit(title_score, (535, 780))
-    sc.blit(font.render(str(score), True, pygame.Color('white')), (550, 840))
-    sc.blit(title_record, (525, 650))
-    sc.blit(font.render(record, True, pygame.Color('gold')), (550, 710))
     
-    # game over
-    for i in range(W):
-        if field[0][i]:
-            set_record(record, score)
-            field = [[0 for i in range(W)] for i in range(H)]
-            anim_count, anim_speed, anim_limit = 0,60,2000
-            score = 0
-            for i_rect in grid:
-                pygame.draw.rect(game_sc, get_color(), i_rect)
-                sc.blit(game_sc, (20,20))
-                pygame.display.flip()
-                clock.tick(200)
-        
-    pygame.display.flip()
-    clock.tick(FPS)
-            
-            
-            # reference : https://www.youtube.com/watch?v=7kGNs5R-AM8&list=PL2in2A77Cuw0bWz2HdhOfPDcRmWCHMMYf&index=4&t=186s
+    # passa valor para a tela 
+    valor_texto.set(todos_valores)
+    
+
+# função calcular
+def calcular():
+    global todos_valores
+    resultado = eval(todos_valores)
+    valor_texto.set(str(resultado))
+    
+# funcao para limpar tela 
+def limpa_tela():
+    global todos_valores
+    todos_valores = ''
+    valor_texto.set('')
+    
+    
+# criando label 
+valor_texto = StringVar()
+app_label = Label(frame_tela, textvariable= valor_texto, width = 16, height = 2, padx= 7, relief = FLAT, anchor= "e", justify = RIGHT, font= ('Ivy 18'), bg = cor_verde_escuro, fg = cor_branca)
+app_label.place(x= 0, y= 0)
+
+
+# criando botões
+# clean
+b_1 = Button(frame_corpo, text= "C", command= limpa_tela, width = 11, height = 2, bg= cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_1.place(x = 0, y = 0)
+
+b_2 = Button(frame_corpo, text="%", command = lambda:entrar_valores('%') ,width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_2.place(x = 119, y = 0)
+
+b_3 = Button(frame_corpo, text="/",command = lambda:entrar_valores('/') , width = 5, height = 2, bg = cor_verde_claro, font= ('Ivy 13 bold'))
+b_3.place(x = 177, y = 0)
+
+
+b_4 = Button(frame_corpo, text="7",command = lambda:entrar_valores('7') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_4.place(x = 0, y = 52)
+
+b_5 = Button(frame_corpo, text="8",command = lambda:entrar_valores('8') , width = 5, height = 2, bg = cor_verde_cinza_claro, font= ('Ivy 13 bold'))
+b_5.place(x = 59, y = 52)
+
+b_6 = Button(frame_corpo, text="9",command = lambda:entrar_valores('9') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_6.place(x = 118, y = 52)
+
+b_7 = Button(frame_corpo, text="*",command = lambda:entrar_valores('*') , width = 5, height = 2, bg = cor_verde_claro, font= ('Ivy 13 bold'))
+b_7.place(x = 177, y = 52)
+
+
+b_8 = Button(frame_corpo, text="4",command = lambda:entrar_valores('4') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_8.place(x = 0, y = 104)
+
+b_9 = Button(frame_corpo, text="5",command = lambda:entrar_valores('5') , width = 5, height = 2, bg = cor_verde_cinza_claro, font= ('Ivy 13 bold'))
+b_9.place(x = 59, y = 104)
+
+b_10 = Button(frame_corpo, text="6",command = lambda:entrar_valores('6') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_10.place(x = 118, y = 104)
+
+b_11 = Button(frame_corpo, text="-",command = lambda:entrar_valores('-') , width = 5, height = 2, bg = cor_verde_claro, font= ('Ivy 13 bold'))
+b_11.place(x = 177, y = 104)
+
+
+b_12 = Button(frame_corpo, text="1",command = lambda:entrar_valores('1') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_12.place(x = 0, y = 156)
+
+b_13 = Button(frame_corpo, text="2",command = lambda:entrar_valores('2') , width = 5, height = 2, bg = cor_verde_cinza_claro, font= ('Ivy 13 bold'))
+b_13.place(x = 59, y = 156)
+
+b_14 = Button(frame_corpo, text="3",command = lambda:entrar_valores('3') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_14.place(x = 118, y = 156)
+
+b_15 = Button(frame_corpo, text="+",command = lambda:entrar_valores('+') , width = 5, height = 2, bg = cor_verde_claro, font= ('Ivy 13 bold'))
+b_15.place(x = 177, y = 156)
+
+
+b_16 = Button(frame_corpo, text= "0",command = lambda:entrar_valores('0') , width = 11, height = 2, bg= cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_16.place(x = 0, y = 208)
+
+b_17 = Button(frame_corpo, text=".",command = lambda:entrar_valores('.') , width = 5, height = 2, bg = cor_verde_cinza_claro, font = ('Ivy 13 bold'))
+b_17.place(x = 119, y = 208)
+
+b_18 = Button(frame_corpo, text="=",command = calcular , width = 5, height = 2, bg = cor_verde_claro, font= ('Ivy 13 bold'))
+b_18.place(x = 180, y = 208)
+
+
+
+    
+janela.mainloop()
