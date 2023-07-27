@@ -7,4 +7,5 @@ Projetos iniciantes feitos em Python
 
 -Calculadora Básica usando o Tkinter (main.py)
 
-![image](https://github.com/lukask028/ProjetosEmPython/assets/54475600/ab5b27a8-6973-472a-a07a-188121776c78)
+![image](https://github.com/lukask028/ProjetosEmPython/assets/54475600/cfdf9b5a-bd5a-4f9b-acc9-356905a7ad0b)
+
