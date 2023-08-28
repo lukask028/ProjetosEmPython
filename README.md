@@ -9,3 +9,10 @@ Projetos iniciantes feitos em Python
 
 ![image](https://github.com/lukask028/ProjetosEmPython/assets/54475600/cfdf9b5a-bd5a-4f9b-acc9-356905a7ad0b)
 
+
+-Jogo da forca usando o módulo random, string, e funções:
+uso de funções:
+uma para escolha da palavra válida
+e outra para o próprio jogo
+![image](https://github.com/lukask028/ProjetosEmPython/assets/54475600/ced96a1d-d8ce-4d48-b09f-10cab49d40dd)
+
